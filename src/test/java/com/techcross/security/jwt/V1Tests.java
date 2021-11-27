@@ -15,8 +15,8 @@ public class V1Tests {
 //	@Autowired
 //	WebClient webClient;
 	
-	@Autowired
-	private WebTestClient webTestClient;
+//	@Autowired
+//	private WebTestClient webTestClient;
 
 	@Autowired
 	private RestTemplate restTemplate;
@@ -43,7 +43,8 @@ public class V1Tests {
 	public void testPublicHello() {
 		ResponseEntity<String> response = 
 			      restTemplate.getForEntity("https://localhost:8443/v1/public/hello", String.class);
-		assertThat(response.getStatusCode()).isEqualTo(200);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo("[\"Public Hello!\"]");
 		System.err.println(response.getBody());
 	}
 
