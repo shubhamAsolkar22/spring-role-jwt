@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.techcross.security.jwt.dao.UserDao;
+import com.techcross.security.jwt.model.AuthToken;
 import com.techcross.security.jwt.model.Role;
 import com.techcross.security.jwt.model.User;
 import com.techcross.security.jwt.model.UserDto;
@@ -77,4 +78,5 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         nUser.setRoles(roleSet);
         return userDao.save(nUser);
     }
+
 }
