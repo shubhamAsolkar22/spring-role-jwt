@@ -1,5 +1,7 @@
 package com.techcross.security.jwt.controller;
 
+import java.util.Optional;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -46,19 +48,19 @@ public class UserController {
 	private AuthenticationManager authenticationManager;
 
 	@Autowired
-	private TokenProvider jwtTokenUtil;
-
-	@Autowired
 	private UserService userService;
 
 	@Resource(name = "userService")
 	private UserDetailsService userDetailsService;
 
-	@Value("${jwt.token.prefix}")
-	public String TOKEN_PREFIX;
+	@Autowired
+	private TokenProvider jwtTokenUtil;
 
 	@Value("${jwt.header.string}")
 	public String HEADER_STRING;
+
+	@Value("${jwt.token.prefix}")
+	public String TOKEN_PREFIX;
 
 	@PostMapping(value = "/token")
 	public ResponseEntity<?> generateToken(@RequestBody LoginUser loginUser) throws AuthenticationException {
@@ -78,41 +80,12 @@ public class UserController {
 
 	@GetMapping(value = "/refreshed-token")
 	public ResponseEntity<?> generateRefreshToken(HttpServletRequest req) throws AuthenticationException {
-
 		final String authHeader = req.getHeader(HEADER_STRING);
-		String refreshToken = null;
-		String username = null;
-		String token = null;
-		if (authHeader != null && authHeader.startsWith(TOKEN_PREFIX)) {
-			refreshToken = authHeader.replace(TOKEN_PREFIX, "");
-			try {
-				username = jwtTokenUtil.getUsernameFromToken(refreshToken);
-			} catch (IllegalArgumentException e) {
-				logger.error("An error occurred while fetching Username from Token", e);
-			} catch (ExpiredJwtException e) {
-				logger.warn("The token has expired", e);
-			} catch (SignatureException e) {
-				logger.error("Authentication Failed. Username or Password not valid.");
-			}
-		} else {
-			logger.warn("Couldn't find bearer string, header will be ignored");
-		}
+		final String refreshToken = authHeader.replace(TOKEN_PREFIX, "");
 
-		if (username != null /* && SecurityContextHolder.getContext().getAuthentication() == null */) {
+		final AuthToken aToken = userService.refreshToken(refreshToken);
 
-			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-			if (jwtTokenUtil.validateToken(refreshToken, userDetails)) {
-				UsernamePasswordAuthenticationToken authentication = jwtTokenUtil.getAuthenticationToken(refreshToken,
-						SecurityContextHolder.getContext().getAuthentication(), userDetails);
-				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
-				logger.info("authenticated user " + username + ", setting security context");
-				SecurityContextHolder.getContext().setAuthentication(authentication);
-				token = jwtTokenUtil.generateToken(authentication);
-				return ResponseEntity.ok(new AuthToken(token, refreshToken));
-			}
-		}
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		return ResponseEntity.ok(aToken);
 	}
 
 }

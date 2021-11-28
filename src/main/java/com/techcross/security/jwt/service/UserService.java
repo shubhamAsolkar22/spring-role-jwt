@@ -1,6 +1,9 @@
 package com.techcross.security.jwt.service;
 
 import java.util.List;
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
 
 import com.techcross.security.jwt.model.AuthToken;
 import com.techcross.security.jwt.model.User;
@@ -10,5 +13,5 @@ public interface UserService {
     User save(UserDto user);
     List<User> findAll();
     User findOne(String username);
-    AuthToken refresh(String refreshToken);
+    AuthToken refreshToken(String refreshToken);
 }
