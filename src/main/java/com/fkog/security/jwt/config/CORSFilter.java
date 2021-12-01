@@ -1,4 +1,4 @@
-package com.techcross.security.jwt.config;
+package com.fkog.security.jwt.config;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;

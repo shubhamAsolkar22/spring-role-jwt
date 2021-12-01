@@ -1,4 +1,4 @@
-package com.techcross.security.jwt.service.impl;
+package com.fkog.security.jwt.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,14 +24,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
-import com.techcross.security.jwt.config.TokenProvider;
-import com.techcross.security.jwt.dao.UserDao;
-import com.techcross.security.jwt.model.AuthToken;
-import com.techcross.security.jwt.model.Role;
-import com.techcross.security.jwt.model.User;
-import com.techcross.security.jwt.model.UserDto;
-import com.techcross.security.jwt.service.RoleService;
-import com.techcross.security.jwt.service.UserService;
+import com.fkog.security.jwt.config.TokenProvider;
+import com.fkog.security.jwt.dao.UserDao;
+import com.fkog.security.jwt.model.AuthToken;
+import com.fkog.security.jwt.model.Role;
+import com.fkog.security.jwt.model.User;
+import com.fkog.security.jwt.model.UserDto;
+import com.fkog.security.jwt.service.RoleService;
+import com.fkog.security.jwt.service.UserService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;

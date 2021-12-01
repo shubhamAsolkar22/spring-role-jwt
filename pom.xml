@@ -9,7 +9,7 @@
 		<version>2.3.1.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.techcross</groupId>
+	<groupId>com.fkog</groupId>
 	<artifactId>spring-role-jwt</artifactId>
 	<version>0.0.1</version>
 	<name>spring-role-jwt</name>

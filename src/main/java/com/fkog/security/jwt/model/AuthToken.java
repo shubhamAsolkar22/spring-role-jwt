@@ -1,4 +1,4 @@
-package com.techcross.security.jwt.model;
+package com.fkog.security.jwt.model;
 
 public class AuthToken {
 

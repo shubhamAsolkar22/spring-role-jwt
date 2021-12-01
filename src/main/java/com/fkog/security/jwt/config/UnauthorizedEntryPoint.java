@@ -1,4 +1,4 @@
-package com.techcross.security.jwt.config;
+package com.fkog.security.jwt.config;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;

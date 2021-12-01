@@ -1,11 +1,11 @@
-package com.techcross.security.jwt.service.impl;
+package com.fkog.security.jwt.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.techcross.security.jwt.dao.RoleDao;
-import com.techcross.security.jwt.model.Role;
-import com.techcross.security.jwt.service.RoleService;
+import com.fkog.security.jwt.dao.RoleDao;
+import com.fkog.security.jwt.model.Role;
+import com.fkog.security.jwt.service.RoleService;
 
 @Service(value = "roleService")
 public class RoleServiceImpl implements RoleService {

@@ -1,4 +1,4 @@
-package com.techcross.security.jwt.controller;
+package com.fkog.security.jwt.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

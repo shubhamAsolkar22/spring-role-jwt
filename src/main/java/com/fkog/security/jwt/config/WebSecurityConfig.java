@@ -1,4 +1,4 @@
-package com.techcross.security.jwt.config;
+package com.fkog.security.jwt.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

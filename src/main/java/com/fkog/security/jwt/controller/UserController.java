@@ -1,4 +1,4 @@
-package com.techcross.security.jwt.controller;
+package com.fkog.security.jwt.controller;
 
 import java.util.Optional;
 
@@ -27,12 +27,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.techcross.security.jwt.config.TokenProvider;
-import com.techcross.security.jwt.model.AuthToken;
-import com.techcross.security.jwt.model.LoginUser;
-import com.techcross.security.jwt.model.User;
-import com.techcross.security.jwt.model.UserDto;
-import com.techcross.security.jwt.service.UserService;
+import com.fkog.security.jwt.config.TokenProvider;
+import com.fkog.security.jwt.model.AuthToken;
+import com.fkog.security.jwt.model.LoginUser;
+import com.fkog.security.jwt.model.User;
+import com.fkog.security.jwt.model.UserDto;
+import com.fkog.security.jwt.service.UserService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
