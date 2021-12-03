@@ -23,14 +23,17 @@ import javax.annotation.Resource;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Resource(name = "userService")
-    private UserDetailsService userDetailsService;
+	private UserDetailsService userDetailsService;
 
     @Autowired
     private UnauthorizedEntryPoint unauthorizedEntryPoint;
+    
+    @Autowired
+    private BCryptPasswordEncoder encoder;
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(encoder());
+        auth.userDetailsService(userDetailsService).passwordEncoder(encoder);
     }
 
     @Override
@@ -46,10 +49,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
     }
 
-    @Bean
-    public BCryptPasswordEncoder encoder(){
-        return new BCryptPasswordEncoder();
-    }
 
     @Override
     @Bean

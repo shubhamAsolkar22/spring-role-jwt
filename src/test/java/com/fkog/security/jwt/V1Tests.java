@@ -1,4 +1,4 @@
-package com.techcross.security.jwt;
+package com.fkog.security.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +42,6 @@ public class V1Tests {
 //	}
 
 	@Test
-	@Disabled
 	@DisplayName(("Test v1/public/hello using https configured restTemplate"))
 	public void testPublicHello() {
 		ResponseEntity<String> response = restTemplate.getForEntity("https://localhost:8443/v1/public/hello",
@@ -53,11 +52,13 @@ public class V1Tests {
 	}
 
 	@Test
+//	@Disabled
 	@DisplayName(("Test v1/public/hello using https configured web client"))
 	public void testPublicHelloWebClient() {
-		webClient.post().uri("/v1/public/hello")
-		.retrieve()
-		.bodyToMono(String.class)
-		.subscribe(s -> assertThat(s).isEqualTo("[\"Public Hello!\"]"));
+		webClient.post().uri("/v1/public/hello").retrieve().bodyToMono(String.class).subscribe(s -> {
+			System.out.println(s);
+			assertThat(s).isEqualTo("[\"Public Hello!\"]");
+		},
+				err -> System.err.println(err));
 	}
 }

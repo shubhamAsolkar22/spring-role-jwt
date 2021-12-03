@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -26,8 +27,8 @@ import io.netty.handler.ssl.SslContextBuilder;
 
 @Configuration
 public class BeanConfig {
-	@Value("${server.port}")
-	private int serverPort;
+//	@Value("${server.port}")
+//	private int serverPort;
 
 	@Value("${trust.store.password}")
 	private String trustStorePassword;
@@ -44,4 +45,9 @@ public class BeanConfig {
 		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
 		return new RestTemplate(factory);
 	}
+	
+	@Bean
+    public BCryptPasswordEncoder encoder(){
+        return new BCryptPasswordEncoder();
+    }
 }

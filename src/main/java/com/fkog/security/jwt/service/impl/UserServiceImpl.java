@@ -36,7 +36,7 @@ import com.fkog.security.jwt.service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
 
-@Service(value = "userService")
+@Service  (value = "userService") 
 public class UserServiceImpl implements UserDetailsService, UserService {
 
 	protected final Log logger = LogFactory.getLog(getClass());
@@ -59,8 +59,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	@Value("${jwt.header.string}")
 	public String HEADER_STRING;
 
-	@Resource(name = "userService")
-	private UserDetailsService userDetailsService;
 
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = userDao.findByUsername(username);
