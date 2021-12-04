@@ -26,9 +26,10 @@ import org.springframework.stereotype.Service;
 
 import com.fkog.security.jwt.config.TokenProvider;
 import com.fkog.security.jwt.dao.UserDao;
+import com.fkog.security.jwt.entity.Role;
+import com.fkog.security.jwt.entity.User;
 import com.fkog.security.jwt.model.AuthToken;
-import com.fkog.security.jwt.model.Role;
-import com.fkog.security.jwt.model.User;
+import com.fkog.security.jwt.model.AuthTokenImpl;
 import com.fkog.security.jwt.model.UserDto;
 import com.fkog.security.jwt.service.RoleService;
 import com.fkog.security.jwt.service.UserService;
@@ -115,7 +116,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
 		final String newToken = jwtTokenUtil.generateToken(authentication);
 
-		authToken = new AuthToken(newToken, refreshToken);
+		authToken = new AuthTokenImpl(newToken, refreshToken);
 
 		return authToken;
 	}

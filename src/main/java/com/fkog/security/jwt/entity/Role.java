@@ -1,4 +1,4 @@
-package com.fkog.security.jwt.model;
+package com.fkog.security.jwt.entity;
 
 import javax.persistence.*;
 

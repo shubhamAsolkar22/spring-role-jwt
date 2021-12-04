@@ -1,33 +1,13 @@
 package com.fkog.security.jwt.model;
 
-public class AuthToken {
+public interface AuthToken {
 
-    private String token;
-    private String refreshToken;
+	String getToken();
 
-    public AuthToken(){
+	void setToken(String token);
 
-    }
+	String getRefreshToken();
 
-    public AuthToken(String token, String refreshToken){
-        this.token = token;
-        this.refreshToken = refreshToken;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-	public String getRefreshToken() {
-		return refreshToken;
-	}
-
-	public void setRefreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
-	}
+	void setRefreshToken(String refreshToken);
 
 }

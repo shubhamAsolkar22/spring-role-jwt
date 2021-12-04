@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 
 import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -30,19 +29,19 @@ public class WebClientSSLConfig {
 	@Value("${trust.store}")
 	private Resource trustStore;
 
+//	@Bean
+//	public WebClient getWebClient() throws Exception {
+//		return WebClient.builder().baseUrl("http://localhost:8080").build();
+//	}
+	
 	@Bean
 	public WebClient getWebClient() throws Exception {
-		// SslContext sslContext = SslContextBuilder
-		// .forClient()
-		// .trustManager(InsecureTrustManagerFactory.INSTANCE)
-		// .build();
-		// HttpClient httpClient = HttpClient.create().secure(t ->
-		// t.sslContext(sslContext));
-		// webClient = WebClient.builder()
-		// .baseUrl("https://localhost:8443/Message")
-		// .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-		// .clientConnector(new ReactorClientHttpConnector(httpClient)).build();
-
+//		SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
+//				.build();
+//		HttpClient httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
+//		return WebClient.builder().baseUrl("https://localhost:8443")
+//				.clientConnector(new ReactorClientHttpConnector(httpClient)).build();
+//		https://localhost:8443/v1/public/hello
 		// ******************************* working code
 
 		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -55,7 +54,7 @@ public class WebClientSSLConfig {
 
 		// Set up key manager factory to use our key store
 
-		keyManagerFactory.init(keyStore, "password".toCharArray());
+		keyManagerFactory.init(keyStore, trustStorePassword.toCharArray());
 
 		// truststore
 		KeyStore tStore = KeyStore.getInstance("PKCS12");
@@ -71,4 +70,5 @@ public class WebClientSSLConfig {
 		return WebClient.builder().baseUrl("https://localhost:8443/")
 				.clientConnector(new ReactorClientHttpConnector(httpClient)).build();
 	}
+	
 }

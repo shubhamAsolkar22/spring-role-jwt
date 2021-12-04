@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.fkog.security.jwt.entity.User;
 import com.fkog.security.jwt.model.AuthToken;
-import com.fkog.security.jwt.model.User;
 import com.fkog.security.jwt.model.UserDto;
 
 public interface UserService {

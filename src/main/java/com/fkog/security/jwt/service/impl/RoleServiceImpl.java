@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fkog.security.jwt.dao.RoleDao;
-import com.fkog.security.jwt.model.Role;
+import com.fkog.security.jwt.entity.Role;
 import com.fkog.security.jwt.service.RoleService;
 
 @Service(value = "roleService")

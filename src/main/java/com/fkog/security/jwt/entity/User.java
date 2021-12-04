@@ -1,7 +1,10 @@
-package com.fkog.security.jwt.model;
+package com.fkog.security.jwt.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
+
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -102,4 +105,26 @@ public class User {
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(businessTitle, email, id, name, password, phone, roles, username);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User other = (User) obj;
+		return Objects.equals(businessTitle, other.businessTitle) && Objects.equals(email, other.email)
+				&& id == other.id && Objects.equals(name, other.name) && Objects.equals(password, other.password)
+				&& Objects.equals(phone, other.phone) && Objects.equals(roles, other.roles)
+				&& Objects.equals(username, other.username);
+	}
+    
+    
 }

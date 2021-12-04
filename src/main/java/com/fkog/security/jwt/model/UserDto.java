@@ -1,73 +1,33 @@
 package com.fkog.security.jwt.model;
 
-public class UserDto {
-    
-    private String username;
-    private String password;
-    private String email;
-    private String phone;
-    private String name;
-    private String businessTitle;
+import com.fkog.security.jwt.entity.User;
 
+public interface UserDto {
 
-    public String getUsername() {
-        return username;
-    }
+	String getUsername();
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+	void setUsername(String username);
 
-    public String getPassword() {
-        return password;
-    }
+	String getPassword();
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+	void setPassword(String password);
 
-    public String getEmail() {
-        return email;
-    }
+	String getEmail();
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+	void setEmail(String email);
 
-    public String getPhone() {
-        return phone;
-    }
+	String getPhone();
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+	void setPhone(String phone);
 
-    public String getName() {
-        return name;
-    }
+	String getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	void setName(String name);
 
-    public String getBusinessTitle() {
-        return businessTitle;
-    }
+	String getBusinessTitle();
 
-    public void setBusinessTitle(String businessTitle) {
-        this.businessTitle = businessTitle;
-    }
+	void setBusinessTitle(String businessTitle);
 
-    public User getUserFromDto(){
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(password);
-        user.setEmail(email);
-        user.setPhone(phone);
-        user.setName(name);
-        user.setBusinessTitle(businessTitle);
-        
-        return user;
-    }
-    
+	User getUserFromDto();
+
 }

@@ -28,9 +28,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fkog.security.jwt.config.TokenProvider;
+import com.fkog.security.jwt.entity.User;
 import com.fkog.security.jwt.model.AuthToken;
+import com.fkog.security.jwt.model.AuthTokenImpl;
 import com.fkog.security.jwt.model.LoginUser;
-import com.fkog.security.jwt.model.User;
 import com.fkog.security.jwt.model.UserDto;
 import com.fkog.security.jwt.service.UserService;
 
@@ -70,7 +71,7 @@ public class UserController {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		final String token = jwtTokenUtil.generateToken(authentication);
 		final String refreshToken = jwtTokenUtil.generateRefreshToken(authentication);
-		return ResponseEntity.ok(new AuthToken(token, refreshToken));
+		return ResponseEntity.ok(new AuthTokenImpl(token, refreshToken));
 	}
 
 	@PostMapping(path = "/new")
