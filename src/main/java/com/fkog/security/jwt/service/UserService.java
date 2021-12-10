@@ -1,13 +1,11 @@
 package com.fkog.security.jwt.service;
 
 import java.util.List;
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
 
 import com.fkog.security.jwt.model.AuthToken;
 import com.fkog.security.jwt.model.User;
 import com.fkog.security.jwt.model.UserDto;
+import org.springframework.stereotype.Service;
 
 public interface UserService {
     User save(UserDto user);

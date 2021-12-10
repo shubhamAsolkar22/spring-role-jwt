@@ -1,5 +1,6 @@
 package com.fkog.security.jwt.model;
 
+
 public class UserDto {
     
     private String username;
