@@ -19,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fkog.security.jwt.model.User;
@@ -152,9 +153,11 @@ public class V1IntegrationTests {
 		adminPingHeader.setContentType(MediaType.APPLICATION_JSON);
 		adminPingHeader.add(HEADER_STRING, TOKEN_PREFIX + authTokenResponse.getBody().getRefreshToken());
 		HttpEntity<?> requestAdminPing = new HttpEntity<>( adminPingHeader);
-		ResponseEntity<String> adminPingResponse = restTemplate.exchange(uriAdminPing, HttpMethod.GET, requestAdminPing,
-				String.class);
-		assertThat(adminPingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+		try{ResponseEntity<String> adminPingResponse = restTemplate.exchange(uriAdminPing, HttpMethod.GET, requestAdminPing,
+				String.class);}
+		catch(HttpClientErrorException e) {
+			assertThat(e.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+		}
 
 	}
 
