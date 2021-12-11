@@ -33,144 +33,170 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class V1IntegrationTests {
 
-    private static final String BASE_URL = "https://localhost:8443/v1";
-    private static final UserDto STANDARD_USER = new UserDto();
+	private static final String BASE_URL = "https://localhost:8443/v1";
+	private static final UserDto STANDARD_USER = new UserDto();
 
-    @Autowired
-    private UserDao userDao;
+	@Autowired
+	private UserDao userDao;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+	@Autowired
+	private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private TokenProvider jwtTokenUtil;
+	@Autowired
+	private TokenProvider jwtTokenUtil;
 
-    @Value("${jwt.header.string}")
-    public String HEADER_STRING;
+	@Value("${jwt.header.string}")
+	public String HEADER_STRING;
 
-    @Value("${jwt.token.prefix}")
-    public String TOKEN_PREFIX;
-    
-    static {
-        STANDARD_USER.setUsername("shubham");
-        STANDARD_USER.setEmail("abc@fkog.com");
-        STANDARD_USER.setBusinessTitle("developer");
-        STANDARD_USER.setName("shubham");
-        STANDARD_USER.setPhone("9899754628");
-        STANDARD_USER.setPassword("mgidb@1234");
-    }
+	@Value("${jwt.token.prefix}")
+	public String TOKEN_PREFIX;
 
-    @Autowired
-    private RestTemplate restTemplate;
+	static {
+		STANDARD_USER.setUsername("shubham");
+		STANDARD_USER.setEmail("abc@fkog.com");
+		STANDARD_USER.setBusinessTitle("developer");
+		STANDARD_USER.setName("shubham");
+		STANDARD_USER.setPhone("9899754628");
+		STANDARD_USER.setPassword("mgidb@1234");
+	}
 
-    @Test
-    public void testPublicHello() {
-        ResponseEntity<String> response = restTemplate.getForEntity("https://localhost:8443/v1/public/hello",
-                String.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo("[\"Public Hello!\"]");
-        System.err.println(response.getBody());
-    }
+	@Autowired
+	private RestTemplate restTemplate;
 
-    @Test
-    @DisplayName(value = "MUST be able to register new user")
-    public void t1() throws URISyntaxException {
-        ResponseEntity<User> response = null;
-        try {
-            User u = userDao.findByUsername(STANDARD_USER.getUsername());
-            if (u == null) {
-                response = registerStandardUser(STANDARD_USER);
+	@Test
+	public void testPublicHello() {
+		ResponseEntity<String> response = restTemplate.getForEntity("https://localhost:8443/v1/public/hello",
+				String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isEqualTo("[\"Public Hello!\"]");
+		System.err.println(response.getBody());
+	}
 
-                assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+	@Test
+	@DisplayName(value = "MUST be able to register new user")
+	public void t1() throws URISyntaxException {
+		ResponseEntity<User> response = null;
+		try {
+			User u = userDao.findByUsername(STANDARD_USER.getUsername());
+			if (u == null) {
+				response = registerStandardUser(STANDARD_USER);
 
-                if (HttpStatus.OK == response.getStatusCode()) {
-                    User responseUser = response.getBody();
-                    System.err.println(responseUser);
-                    assertThat(responseUser.getUsername()).isEqualTo(STANDARD_USER.getUsername());
-                    assertThat(responseUser.getEmail()).isEqualTo(STANDARD_USER.getEmail());
-                    assertThat(responseUser.getRoles().size()).isEqualTo(1);
-                    assertThat(responseUser.getRoles().stream().anyMatch(r -> r.getName().equals("USER"))).isEqualTo(true);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+				assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-    }
+				if (HttpStatus.OK == response.getStatusCode()) {
+					User responseUser = response.getBody();
+					System.err.println(responseUser);
+					assertThat(responseUser.getUsername()).isEqualTo(STANDARD_USER.getUsername());
+					assertThat(responseUser.getEmail()).isEqualTo(STANDARD_USER.getEmail());
+					assertThat(responseUser.getRoles().size()).isEqualTo(1);
+					assertThat(responseUser.getRoles().stream().anyMatch(r -> r.getName().equals("USER")))
+							.isEqualTo(true);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-    @Test
-    @DisplayName(value = "registered user must be able to get jwt token using /v1/users/token")
-    public void t2() throws URISyntaxException {
-        getResponseOfRegisterUserQuery();
+	}
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+	@Test
+	@DisplayName(value = "registered user must be able to get jwt token using /v1/users/token")
+	public void t2() throws URISyntaxException {
+		getResponseOfRegisterUserQuery();
 
-        URI uri = new URI(BASE_URL + "/users/token");
-        System.err.println("t2 uri " + uri.toString());
-        LoginUser loginUser = new LoginUser();
-        loginUser.setPassword(STANDARD_USER.getPassword());
-        loginUser.setUsername(STANDARD_USER.getUsername());
+		ResponseEntity<AuthToken> response = getAuthTokenForStandardUser();
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody().getToken()).isNotNull();
+		assertThat(response.getBody().getRefreshToken()).isNotNull();
+	}
 
-        HttpEntity<LoginUser> request = new HttpEntity<LoginUser>(loginUser, headers);
+	@Test
+	@DisplayName(value = "registered user must be able to acquire refresh token using earlier non-expired jwt token")
+	public void t3() throws URISyntaxException {
 
-        ResponseEntity<AuthToken> response = restTemplate.exchange(uri, HttpMethod.POST, request, AuthToken.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getToken()).isNotNull();
-        assertThat(response.getBody().getRefreshToken()).isNotNull();
-    }
+		getResponseOfRegisterUserQuery();
 
-    @Test
-    @DisplayName(value = "registered user must be able to acquire refresh token using earlier non-expired jwt token")
-    public void t3() throws URISyntaxException {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
 
-        getResponseOfRegisterUserQuery();
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+		final Authentication authentication = authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(STANDARD_USER.getUsername(), STANDARD_USER.getPassword()));
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		final String token = jwtTokenUtil.generateToken(authentication);
+		final String refreshToken = jwtTokenUtil.generateRefreshToken(authentication);
 
-        final Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(STANDARD_USER.getUsername(), STANDARD_USER.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        final String token = jwtTokenUtil.generateToken(authentication);
-        final String refreshToken = jwtTokenUtil.generateRefreshToken(authentication);
-        
-        AuthToken recentToken = new AuthToken(token, refreshToken);
-        
-        headers.add(HEADER_STRING, TOKEN_PREFIX+recentToken.getRefreshToken());
-        
-        HttpEntity request = new HttpEntity(headers);
-        URI uri = new URI(BASE_URL + "/users//refreshed-token");
-        
-        ResponseEntity<AuthToken> response = restTemplate.exchange(uri, HttpMethod.GET, request, AuthToken.class);
-        
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getRefreshToken()).isEqualTo(recentToken.getRefreshToken());
-        assertThat(response.getBody().getToken()).isNotNull();
-    }
+		AuthToken recentToken = new AuthToken(token, refreshToken);
 
-    private ResponseEntity<User> getResponseOfRegisterUserQuery() {
-        ResponseEntity<User> response = null;
-        try {
-            User u = userDao.findByUsername(STANDARD_USER.getUsername());
-            if (u == null) {
-                response = registerStandardUser(STANDARD_USER);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return response;
-    }
+		headers.add(HEADER_STRING, TOKEN_PREFIX + recentToken.getRefreshToken());
 
-    private ResponseEntity<User> registerStandardUser(UserDto userDto) throws URISyntaxException {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity request = new HttpEntity(headers);
+		URI uri = new URI(BASE_URL + "/users//refreshed-token");
 
-        URI uri = new URI(BASE_URL + "/users/new");
+		ResponseEntity<AuthToken> response = restTemplate.exchange(uri, HttpMethod.GET, request, AuthToken.class);
 
-        HttpEntity<UserDto> request = new HttpEntity<UserDto>(userDto, headers);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody().getRefreshToken()).isEqualTo(recentToken.getRefreshToken());
+		assertThat(response.getBody().getToken()).isNotNull();
+	}
 
-        return restTemplate.exchange(uri, HttpMethod.POST, request, User.class);
+	@Test
+//	@Disabled
+	@DisplayName(value = "user with role = USER must not be able to access /v1/ping/adminping endpoint")
+	public void t4() throws URISyntaxException {
+		getResponseOfRegisterUserQuery();
 
-    }
+		ResponseEntity<AuthToken> authTokenResponse = getAuthTokenForStandardUser();
+
+		URI uriAdminPing = new URI(BASE_URL + "/ping/adminping");
+		HttpHeaders adminPingHeader = new HttpHeaders();
+		adminPingHeader.setContentType(MediaType.APPLICATION_JSON);
+		adminPingHeader.add(HEADER_STRING, TOKEN_PREFIX + authTokenResponse.getBody().getRefreshToken());
+		HttpEntity<?> requestAdminPing = new HttpEntity<>( adminPingHeader);
+		ResponseEntity<String> adminPingResponse = restTemplate.exchange(uriAdminPing, HttpMethod.GET, requestAdminPing,
+				String.class);
+		assertThat(adminPingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+	}
+
+	private ResponseEntity<AuthToken> getAuthTokenForStandardUser() throws URISyntaxException {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		URI uri = new URI(BASE_URL + "/users/token");
+		System.err.println("t2 uri " + uri.toString());
+		LoginUser loginUser = new LoginUser();
+		loginUser.setPassword(STANDARD_USER.getPassword());
+		loginUser.setUsername(STANDARD_USER.getUsername());
+
+		HttpEntity<LoginUser> requestAuthToken = new HttpEntity<LoginUser>(loginUser, headers);
+
+		ResponseEntity<AuthToken> authTokenResponse = restTemplate.exchange(uri, HttpMethod.POST, requestAuthToken,
+				AuthToken.class);
+		return authTokenResponse;
+	}
+
+	private ResponseEntity<User> getResponseOfRegisterUserQuery() {
+		ResponseEntity<User> response = null;
+		try {
+			User u = userDao.findByUsername(STANDARD_USER.getUsername());
+			if (u == null) {
+				response = registerStandardUser(STANDARD_USER);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+	}
+
+	private ResponseEntity<User> registerStandardUser(UserDto userDto) throws URISyntaxException {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		URI uri = new URI(BASE_URL + "/users/new");
+
+		HttpEntity<UserDto> request = new HttpEntity<UserDto>(userDto, headers);
+
+		return restTemplate.exchange(uri, HttpMethod.POST, request, User.class);
+
+	}
 }
