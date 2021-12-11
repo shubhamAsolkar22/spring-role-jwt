@@ -95,7 +95,6 @@ public class V1IntegrationTests {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        ResponseEntity<User> response = getResponseOfRegisterUserQuery();
 
     }
 

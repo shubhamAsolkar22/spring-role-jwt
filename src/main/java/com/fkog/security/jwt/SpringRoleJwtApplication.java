@@ -8,6 +8,7 @@ public class SpringRoleJwtApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SpringRoleJwtApplication.class, args);
+//    	System.out.println("Hello");
     }
 
 }
