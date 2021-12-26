@@ -1,5 +1,6 @@
 package com.fkog.security.jwt;
 
+import com.fkog.security.jwt.apiError.ApiError;
 import com.fkog.security.jwt.config.TokenProvider;
 import com.fkog.security.jwt.dao.UserDao;
 import com.fkog.security.jwt.model.AuthToken;
@@ -35,7 +36,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class V1IntegrationTests {
 
 	private static final String BASE_URL = "https://localhost:8443/v1";
-	private static final UserDto STANDARD_USER = new UserDto();
+	private static final UserDto invalidUser = new UserDto();
 
 	@Autowired
 	private UserDao userDao;
@@ -53,12 +54,12 @@ public class V1IntegrationTests {
 	public String TOKEN_PREFIX;
 
 	static {
-		STANDARD_USER.setUsername("shubham");
-		STANDARD_USER.setEmail("abc@fkog.com");
-		STANDARD_USER.setBusinessTitle("developer");
-		STANDARD_USER.setName("shubham");
-		STANDARD_USER.setPhone("9899754628");
-		STANDARD_USER.setPassword("mgidb@1234");
+		invalidUser.setUsername("shubham");
+		invalidUser.setEmail("abc@fkog.com");
+		invalidUser.setBusinessTitle("developer");
+		invalidUser.setName("shubham");
+		invalidUser.setPhone("9899754628");
+		invalidUser.setPassword("mgidb@1234");
 	}
 
 	@Autowired
@@ -78,17 +79,17 @@ public class V1IntegrationTests {
 	public void t1() throws URISyntaxException {
 		ResponseEntity<User> response = null;
 		try {
-			User u = userDao.findByUsername(STANDARD_USER.getUsername());
+			User u = userDao.findByUsername(invalidUser.getUsername());
 			if (u == null) {
-				response = registerStandardUser(STANDARD_USER);
+				response = registerUser(invalidUser);
 
 				assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 				if (HttpStatus.OK == response.getStatusCode()) {
 					User responseUser = response.getBody();
 					System.err.println(responseUser);
-					assertThat(responseUser.getUsername()).isEqualTo(STANDARD_USER.getUsername());
-					assertThat(responseUser.getEmail()).isEqualTo(STANDARD_USER.getEmail());
+					assertThat(responseUser.getUsername()).isEqualTo(invalidUser.getUsername());
+					assertThat(responseUser.getEmail()).isEqualTo(invalidUser.getEmail());
 					assertThat(responseUser.getRoles().size()).isEqualTo(1);
 					assertThat(responseUser.getRoles().stream().anyMatch(r -> r.getName().equals("USER")))
 							.isEqualTo(true);
@@ -96,6 +97,39 @@ public class V1IntegrationTests {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+
+	}
+	
+	@Test
+	@DisplayName(value = "MUST return 422 error code if username is not acceptable")
+	public void t6() throws URISyntaxException {
+		ResponseEntity<ApiError> response = null;
+		UserDto invalidUser = new UserDto();
+		invalidUser.setUsername("");
+		invalidUser.setEmail("abc@fkog.com");
+		invalidUser.setBusinessTitle("developer");
+		invalidUser.setName("shubham");
+		invalidUser.setPhone("9899754628");
+		invalidUser.setPassword("mgidb@1234");
+		try {
+			User u = userDao.findByUsername(invalidUser.getUsername());
+			if (u == null) {
+				
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON);
+
+				URI uri = new URI(BASE_URL + "/users/new");
+
+				HttpEntity<UserDto> request = new HttpEntity<UserDto>(invalidUser, headers);
+
+				response =  restTemplate.exchange(uri, HttpMethod.POST, request, ApiError.class);
+
+			}
+		} catch (HttpClientErrorException e) {
+			assertThat(e.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+			System.out.println(e.getResponseBodyAsString());
+//			e.printStackTrace();
 		}
 
 	}
@@ -121,7 +155,7 @@ public class V1IntegrationTests {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		final Authentication authentication = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(STANDARD_USER.getUsername(), STANDARD_USER.getPassword()));
+				new UsernamePasswordAuthenticationToken(invalidUser.getUsername(), invalidUser.getPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		final String token = jwtTokenUtil.generateToken(authentication);
 		final String refreshToken = jwtTokenUtil.generateRefreshToken(authentication);
@@ -168,8 +202,8 @@ public class V1IntegrationTests {
 		URI uri = new URI(BASE_URL + "/users/token");
 		System.err.println("t2 uri " + uri.toString());
 		LoginUser loginUser = new LoginUser();
-		loginUser.setPassword(STANDARD_USER.getPassword());
-		loginUser.setUsername(STANDARD_USER.getUsername());
+		loginUser.setPassword(invalidUser.getPassword());
+		loginUser.setUsername(invalidUser.getUsername());
 
 		HttpEntity<LoginUser> requestAuthToken = new HttpEntity<LoginUser>(loginUser, headers);
 
@@ -181,9 +215,9 @@ public class V1IntegrationTests {
 	private ResponseEntity<User> getResponseOfRegisterUserQuery() {
 		ResponseEntity<User> response = null;
 		try {
-			User u = userDao.findByUsername(STANDARD_USER.getUsername());
+			User u = userDao.findByUsername(invalidUser.getUsername());
 			if (u == null) {
-				response = registerStandardUser(STANDARD_USER);
+				response = registerUser(invalidUser);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -191,7 +225,7 @@ public class V1IntegrationTests {
 		return response;
 	}
 
-	private ResponseEntity<User> registerStandardUser(UserDto userDto) throws URISyntaxException {
+	private ResponseEntity<User> registerUser(UserDto userDto) throws URISyntaxException {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 

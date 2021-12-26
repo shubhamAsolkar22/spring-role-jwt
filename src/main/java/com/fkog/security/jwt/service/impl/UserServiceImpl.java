@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.fkog.security.jwt.config.TokenProvider;
 import com.fkog.security.jwt.dao.UserDao;
+import com.fkog.security.jwt.inputValidator.Validator;
 import com.fkog.security.jwt.model.AuthToken;
 import com.fkog.security.jwt.model.Role;
 import com.fkog.security.jwt.model.User;
@@ -82,7 +83,9 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
     @Override
     public User save(UserDto user) {
-
+    	if(user!=null)
+    		Validator.checkValidUserName(user.getUsername());
+    	
         User nUser = user.getUserFromDto();
         nUser.setPassword(bcryptEncoder.encode(user.getPassword()));
 
