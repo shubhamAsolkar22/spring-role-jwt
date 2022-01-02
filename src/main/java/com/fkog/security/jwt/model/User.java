@@ -2,6 +2,8 @@ package com.fkog.security.jwt.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
+
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -29,6 +31,10 @@ public class User {
 
     @Column
     private String businessTitle;
+    
+    @Temporal(TemporalType.TIMESTAMP)
+    @JsonIgnore
+    private Date lastLoggedOut;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "USER_ROLES",
@@ -103,10 +109,21 @@ public class User {
         this.roles = roles;
     }
 
+	
+
 	@Override
 	public String toString() {
 		return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email + ", phone="
-				+ phone + ", name=" + name + ", businessTitle=" + businessTitle + ", roles=" + roles + "]";
+				+ phone + ", name=" + name + ", businessTitle=" + businessTitle + ", lastLoggedOut=" + lastLoggedOut
+				+ ", roles=" + roles + "]";
+	}
+
+	public Date getLastLoggedOut() {
+		return lastLoggedOut;
+	}
+
+	public void setLastLoggedOut(Date lastLoggedOut) {
+		this.lastLoggedOut = lastLoggedOut;
 	}
     
     

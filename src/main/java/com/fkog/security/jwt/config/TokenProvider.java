@@ -1,6 +1,8 @@
 package com.fkog.security.jwt.config;
 
 import io.jsonwebtoken.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -8,6 +10,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import com.fkog.security.jwt.dao.UserDao;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -27,9 +31,16 @@ public class TokenProvider implements Serializable {
 
     @Value("${jwt.authorities.key}")
     public String AUTHORITIES_KEY;
+    
+    @Autowired
+    private UserDao userDao;
 
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
+    }
+    
+    public Date getIssuedAt(String token) {
+    	return getClaimFromToken(token, Claims::getIssuedAt);
     }
 
     public Date getExpirationDateFromToken(String token) {
@@ -70,7 +81,9 @@ public class TokenProvider implements Serializable {
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        final Date issuedAt = getIssuedAt(token);
+        final Date lastLoggedOutAt = null;
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token) && issuedAt.after(lastLoggedOutAt));
     }
 
     public UsernamePasswordAuthenticationToken getAuthenticationToken(final String token, final Authentication existingAuth,
