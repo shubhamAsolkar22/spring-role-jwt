@@ -1,6 +1,7 @@
 package com.fkog.security.jwt.service.impl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,7 @@ import com.fkog.security.jwt.inputValidator.UserDtoValidator;
 import com.fkog.security.jwt.inputValidator.Validable;
 import com.fkog.security.jwt.inputValidator.Validator;
 import com.fkog.security.jwt.model.AuthToken;
+import com.fkog.security.jwt.model.LogoutUserDto;
 import com.fkog.security.jwt.model.Role;
 import com.fkog.security.jwt.model.User;
 import com.fkog.security.jwt.model.UserDto;
@@ -114,6 +116,11 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         authToken = new AuthToken(newToken, refreshToken);
 
         return authToken;
+    }
+    
+    @Override
+    public void logoutUser(LogoutUserDto logoutUserDto) {
+    	userDao.updateLastLoggedOut(new Date(),logoutUserDto.getUsername());
     }
 
 }

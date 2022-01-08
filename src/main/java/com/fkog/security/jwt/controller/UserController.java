@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fkog.security.jwt.config.TokenProvider;
 import com.fkog.security.jwt.model.AuthToken;
 import com.fkog.security.jwt.model.LoginUser;
+import com.fkog.security.jwt.model.LogoutUserDto;
 import com.fkog.security.jwt.model.User;
 import com.fkog.security.jwt.model.UserDto;
 import com.fkog.security.jwt.service.UserService;
@@ -86,6 +88,12 @@ public class UserController {
 		final AuthToken aToken = userService.refreshToken(refreshToken);
 
 		return ResponseEntity.ok(aToken);
+	}
+	
+	@DeleteMapping(path = "/logout")
+	public ResponseEntity logoutUser(@RequestBody LogoutUserDto logoutUserDto) {
+		userService.logoutUser(logoutUserDto);
+		return ResponseEntity.ok().build();
 	}
 
 }

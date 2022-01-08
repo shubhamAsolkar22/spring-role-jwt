@@ -17,7 +17,7 @@ public class UserDaoTests {
 
 	@Autowired
 	private UserDao userDao;
-	
+
 	@Test
 	public void testLogoutUpdate() {
 		User toBeSaved = new User();
@@ -26,18 +26,24 @@ public class UserDaoTests {
 		toBeSaved.setName("acgh");
 		toBeSaved.setPassword("erwer");
 		toBeSaved.setPhone("1234567890");
-		
-		User savedUser = userDao.save(toBeSaved);
-		
+		toBeSaved.setUsername("acgh");
+
+		User savedUser = null;
+		if (userDao.findByUsername(toBeSaved.getUsername()) == null) {
+
+			savedUser = userDao.save(toBeSaved);
+		} else {
+			savedUser = toBeSaved;
+		}
+
+		System.err.println(savedUser);
 		assertThat(savedUser.getLastLoggedOut()).isNull();
-		
-		userDao.updateLastLoggedOut(new Date(),savedUser.getId());
-		
-		Optional<User> loggedOutUser = userDao.findById(savedUser.getId());
-		
-		assertThat(loggedOutUser.map(u->u.getLastLoggedOut()).isPresent()).isTrue();
-		
-		
-		
+
+		userDao.updateLastLoggedOut(new Date(), savedUser.getUsername());
+		User loggedOutUser = userDao.findByUsername(toBeSaved.getUsername());
+		System.err.println(loggedOutUser);
+
+		assertThat(loggedOutUser.getLastLoggedOut()).isNotNull();
+
 	}
 }
