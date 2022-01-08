@@ -19,5 +19,6 @@ public class UserDtoValidator extends AbstractValidable<UserDto>{
 		Validator.checkValidEmail(userDto.getEmail());
 		Validator.checkValidPassword(userDto.getPassword());
 		Validator.checkValidPhoneNumber(userDto.getPhone());
+		Validator.checkValidUserName(userDto.getUsername());
 	}
 }

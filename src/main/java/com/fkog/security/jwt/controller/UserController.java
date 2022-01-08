@@ -90,7 +90,7 @@ public class UserController {
 		return ResponseEntity.ok(aToken);
 	}
 	
-	@DeleteMapping(path = "/logout")
+	@DeleteMapping(path = "/token")
 	public ResponseEntity logoutUser(@RequestBody LogoutUserDto logoutUserDto) {
 		userService.logoutUser(logoutUserDto);
 		return ResponseEntity.ok().build();

@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.fkog.security.jwt.dao.UserDao;
+import com.fkog.security.jwt.model.User;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -23,83 +24,98 @@ import java.util.stream.Collectors;
 @Component
 public class TokenProvider implements Serializable {
 
-    @Value("${jwt.token.validity}")
-    public long TOKEN_VALIDITY;
+	@Value("${jwt.token.validity}")
+	public long TOKEN_VALIDITY;
 
-    @Value("${jwt.signing.key}")
-    public String SIGNING_KEY;
+	@Value("${jwt.signing.key}")
+	public String SIGNING_KEY;
 
-    @Value("${jwt.authorities.key}")
-    public String AUTHORITIES_KEY;
-    
-    @Autowired
-    private UserDao userDao;
+	@Value("${jwt.authorities.key}")
+	public String AUTHORITIES_KEY;
 
-    public String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
-    }
-    
-    public Date getIssuedAt(String token) {
-    	return getClaimFromToken(token, Claims::getIssuedAt);
-    }
+	@Value("${jwt.logout.enabled}")
+	public String LOGOUT_ENABLED;
 
-    public Date getExpirationDateFromToken(String token) {
-        return getClaimFromToken(token, Claims::getExpiration);
-    }
+	@Autowired
+	private UserDao userDao;
 
-    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
-        return claimsResolver.apply(claims);
-    }
+	public String getUsernameFromToken(String token) {
+		return getClaimFromToken(token, Claims::getSubject);
+	}
 
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(SIGNING_KEY).parseClaimsJws(token).getBody();
-    }
+	public Date getIssuedAt(String token) {
+		return getClaimFromToken(token, Claims::getIssuedAt);
+	}
 
-    private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
-    }
+	public Date getExpirationDateFromToken(String token) {
+		return getClaimFromToken(token, Claims::getExpiration);
+	}
 
-    public String generateToken(Authentication authentication) {
-        return getConfiguredToken(authentication, TOKEN_VALIDITY);
-    }
+	public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+		final Claims claims = getAllClaimsFromToken(token);
+		return claimsResolver.apply(claims);
+	}
 
-    private String getConfiguredToken(Authentication authentication, long tokenValidity) {
-        String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+	private Claims getAllClaimsFromToken(String token) {
+		return Jwts.parser().setSigningKey(SIGNING_KEY).parseClaimsJws(token).getBody();
+	}
 
-        return Jwts.builder().setSubject(authentication.getName()).claim(AUTHORITIES_KEY, authorities)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + tokenValidity * 1000))
-                .signWith(SignatureAlgorithm.HS256, SIGNING_KEY).compact();
-    }
+	private Boolean isTokenExpired(String token) {
+		final Date expiration = getExpirationDateFromToken(token);
+		return expiration.before(new Date());
+	}
 
-    public String generateRefreshToken(Authentication authentication) {
-        return getConfiguredToken(authentication, TOKEN_VALIDITY * 2);
-    }
+	public String generateToken(Authentication authentication) {
+		return getConfiguredToken(authentication, TOKEN_VALIDITY);
+	}
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        final Date issuedAt = getIssuedAt(token);
-        final Date lastLoggedOutAt = null;
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token) && issuedAt.after(lastLoggedOutAt));
-    }
+	private String getConfiguredToken(Authentication authentication, long tokenValidity) {
+		String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+				.collect(Collectors.joining(","));
 
-    public UsernamePasswordAuthenticationToken getAuthenticationToken(final String token, final Authentication existingAuth,
-            final UserDetails userDetails) {
+		return Jwts.builder().setSubject(authentication.getName()).claim(AUTHORITIES_KEY, authorities)
+				.setIssuedAt(new Date(System.currentTimeMillis()))
+				.setExpiration(new Date(System.currentTimeMillis() + tokenValidity * 1000))
+				.signWith(SignatureAlgorithm.HS256, SIGNING_KEY).compact();
+	}
 
-        final JwtParser jwtParser = Jwts.parser().setSigningKey(SIGNING_KEY);
+	public String generateRefreshToken(Authentication authentication) {
+		return getConfiguredToken(authentication, TOKEN_VALIDITY * 2);
+	}
 
-        final Jws<Claims> claimsJws = jwtParser.parseClaimsJws(token);
+	public Boolean validateToken(String token, UserDetails userDetails) {
+		final String username = getUsernameFromToken(token);
+		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token) && !isLoggedOutToken(token));
+	}
 
-        final Claims claims = claimsJws.getBody();
+	private boolean isLoggedOutToken(String token) {
+		if (Boolean.valueOf(LOGOUT_ENABLED)) {
+			final String username = getUsernameFromToken(token);
+			final Date issuedAt = getIssuedAt(token);
+			final User currentUser = userDao.findByUsername(username);
+			if (currentUser != null && currentUser.getLastLoggedOut() != null && issuedAt != null
+					&& issuedAt.before(currentUser.getLastLoggedOut()))
+				return true;
+			else
+				return false;
+		}
+		return false;
+	}
 
-        final Collection<? extends GrantedAuthority> authorities = Arrays
-                .stream(claims.get(AUTHORITIES_KEY).toString().split(",")).map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+	public UsernamePasswordAuthenticationToken getAuthenticationToken(final String token,
+			final Authentication existingAuth, final UserDetails userDetails) {
 
-        return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
-    }
+		final JwtParser jwtParser = Jwts.parser().setSigningKey(SIGNING_KEY);
+
+		final Jws<Claims> claimsJws = jwtParser.parseClaimsJws(token);
+
+		final Claims claims = claimsJws.getBody();
+
+		final Collection<? extends GrantedAuthority> authorities = Arrays
+				.stream(claims.get(AUTHORITIES_KEY).toString().split(",")).map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toList());
+
+		return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
+	}
 
 }

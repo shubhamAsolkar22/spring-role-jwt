@@ -1,14 +1,18 @@
 package com.fkog.security.jwt;
 
 import com.fkog.security.jwt.apiError.ApiError;
+import com.fkog.security.jwt.apiError.ApiErrorImpl;
 import com.fkog.security.jwt.config.TokenProvider;
 import com.fkog.security.jwt.dao.UserDao;
 import com.fkog.security.jwt.model.AuthToken;
 import com.fkog.security.jwt.model.LoginUser;
+import com.fkog.security.jwt.model.LogoutUserDto;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +40,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class V1IntegrationTests {
 
 	private static final String BASE_URL = "https://localhost:8443/v1";
-	private static final UserDto invalidUser = new UserDto();
+	private static final UserDto STANDARD_USER = new UserDto();
 
 	@Autowired
 	private UserDao userDao;
@@ -54,12 +58,12 @@ public class V1IntegrationTests {
 	public String TOKEN_PREFIX;
 
 	static {
-		invalidUser.setUsername("shubham");
-		invalidUser.setEmail("abc@fkog.com");
-		invalidUser.setBusinessTitle("developer");
-		invalidUser.setName("shubham");
-		invalidUser.setPhone("9899754628");
-		invalidUser.setPassword("mgidb@1234");
+		STANDARD_USER.setUsername("shubham");
+		STANDARD_USER.setEmail("abc@fkog.com");
+		STANDARD_USER.setBusinessTitle("developer");
+		STANDARD_USER.setName("shubham");
+		STANDARD_USER.setPhone("9899754628");
+		STANDARD_USER.setPassword("mgidb@1234");
 	}
 
 	@Autowired
@@ -79,17 +83,17 @@ public class V1IntegrationTests {
 	public void t1() throws URISyntaxException {
 		ResponseEntity<User> response = null;
 		try {
-			User u = userDao.findByUsername(invalidUser.getUsername());
+			User u = userDao.findByUsername(STANDARD_USER.getUsername());
 			if (u == null) {
-				response = registerUser(invalidUser);
+				response = registerUser(STANDARD_USER);
 
 				assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 				if (HttpStatus.OK == response.getStatusCode()) {
 					User responseUser = response.getBody();
 					System.err.println(responseUser);
-					assertThat(responseUser.getUsername()).isEqualTo(invalidUser.getUsername());
-					assertThat(responseUser.getEmail()).isEqualTo(invalidUser.getEmail());
+					assertThat(responseUser.getUsername()).isEqualTo(STANDARD_USER.getUsername());
+					assertThat(responseUser.getEmail()).isEqualTo(STANDARD_USER.getEmail());
 					assertThat(responseUser.getRoles().size()).isEqualTo(1);
 					assertThat(responseUser.getRoles().stream().anyMatch(r -> r.getName().equals("USER")))
 							.isEqualTo(true);
@@ -97,39 +101,6 @@ public class V1IntegrationTests {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-
-	}
-	
-	@Test
-	@DisplayName(value = "MUST return 422 error code if username is not acceptable")
-	public void t6() throws URISyntaxException {
-		ResponseEntity<ApiError> response = null;
-		UserDto invalidUser = new UserDto();
-		invalidUser.setUsername("");
-		invalidUser.setEmail("abc@fkog.com");
-		invalidUser.setBusinessTitle("developer");
-		invalidUser.setName("shubham");
-		invalidUser.setPhone("9899754628");
-		invalidUser.setPassword("mgidb@1234");
-		try {
-			User u = userDao.findByUsername(invalidUser.getUsername());
-			if (u == null) {
-				
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON);
-
-				URI uri = new URI(BASE_URL + "/users/new");
-
-				HttpEntity<UserDto> request = new HttpEntity<UserDto>(invalidUser, headers);
-
-				response =  restTemplate.exchange(uri, HttpMethod.POST, request, ApiError.class);
-
-			}
-		} catch (HttpClientErrorException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-			System.out.println(e.getResponseBodyAsString());
-//			e.printStackTrace();
 		}
 
 	}
@@ -155,7 +126,7 @@ public class V1IntegrationTests {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		final Authentication authentication = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(invalidUser.getUsername(), invalidUser.getPassword()));
+				new UsernamePasswordAuthenticationToken(STANDARD_USER.getUsername(), STANDARD_USER.getPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		final String token = jwtTokenUtil.generateToken(authentication);
 		final String refreshToken = jwtTokenUtil.generateRefreshToken(authentication);
@@ -186,13 +157,17 @@ public class V1IntegrationTests {
 		HttpHeaders adminPingHeader = new HttpHeaders();
 		adminPingHeader.setContentType(MediaType.APPLICATION_JSON);
 		adminPingHeader.add(HEADER_STRING, TOKEN_PREFIX + authTokenResponse.getBody().getRefreshToken());
-		HttpEntity<?> requestAdminPing = new HttpEntity<>( adminPingHeader);
-		try{ResponseEntity<String> adminPingResponse = restTemplate.exchange(uriAdminPing, HttpMethod.GET, requestAdminPing,
-				String.class);}
-		catch(HttpClientErrorException e) {
+		HttpEntity<?> requestAdminPing = new HttpEntity<>(adminPingHeader);
+		boolean exceptionThrown = false;
+		try {
+			ResponseEntity<String> adminPingResponse = restTemplate.exchange(uriAdminPing, HttpMethod.GET,
+					requestAdminPing, String.class);
+		} catch (HttpClientErrorException e) {
 			assertThat(e.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+			exceptionThrown = true;
 		}
 
+		assertThat(exceptionThrown).isTrue();
 	}
 
 	private ResponseEntity<AuthToken> getAuthTokenForStandardUser() throws URISyntaxException {
@@ -202,8 +177,8 @@ public class V1IntegrationTests {
 		URI uri = new URI(BASE_URL + "/users/token");
 		System.err.println("t2 uri " + uri.toString());
 		LoginUser loginUser = new LoginUser();
-		loginUser.setPassword(invalidUser.getPassword());
-		loginUser.setUsername(invalidUser.getUsername());
+		loginUser.setPassword(STANDARD_USER.getPassword());
+		loginUser.setUsername(STANDARD_USER.getUsername());
 
 		HttpEntity<LoginUser> requestAuthToken = new HttpEntity<LoginUser>(loginUser, headers);
 
@@ -212,12 +187,75 @@ public class V1IntegrationTests {
 		return authTokenResponse;
 	}
 
-	private ResponseEntity<User> getResponseOfRegisterUserQuery() {
-		ResponseEntity<User> response = null;
+	@Test
+	@DisplayName(value = "MUST return 422 error code if username is not acceptable")
+	public void t5() throws URISyntaxException {
+
+		ResponseEntity<ApiErrorImpl> response = null;
+		UserDto invalidUser = new UserDto();
+		invalidUser.setUsername("");
+		invalidUser.setEmail("abc@fkog.com");
+		invalidUser.setBusinessTitle("developer");
+		invalidUser.setName("shubham");
+		invalidUser.setPhone("+91 8779828648");
+		invalidUser.setPassword("mgidb@1234");
+		boolean exceptionThrown = false;
 		try {
 			User u = userDao.findByUsername(invalidUser.getUsername());
 			if (u == null) {
-				response = registerUser(invalidUser);
+
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON);
+
+				URI uri = new URI(BASE_URL + "/users/new");
+
+				HttpEntity<UserDto> request = new HttpEntity<UserDto>(invalidUser, headers);
+
+				response = restTemplate.exchange(uri, HttpMethod.POST, request, ApiErrorImpl.class);
+
+			}
+		} catch (HttpClientErrorException e) {
+			assertThat(e.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+			System.out.println(e.getResponseBodyAsString());
+			exceptionThrown = true;
+
+		}
+		assertThat(exceptionThrown).isTrue();
+	}
+
+	@Test
+	@DisplayName(value = "/token endpoint must logout user when DELETE method is used")
+	public void t6() throws URISyntaxException {
+		getResponseOfRegisterUserQuery();
+
+		ResponseEntity<AuthToken> authTokenResponse = getAuthTokenForStandardUser();
+
+		URI logoutUri = new URI(BASE_URL + "/users/token");
+		HttpHeaders logoutRequestHeader = new HttpHeaders();
+		logoutRequestHeader.setContentType(MediaType.APPLICATION_JSON);
+		logoutRequestHeader.add(HEADER_STRING, TOKEN_PREFIX + authTokenResponse.getBody().getRefreshToken());
+
+		LogoutUserDto logoutUserDto = new LogoutUserDto();
+		logoutUserDto.setUsername(STANDARD_USER.getUsername());
+		Date beforeLogout = new Date();
+//		assertThat(userDao.findByUsername(STANDARD_USER.getUsername()).getLastLoggedOut()).isNull();
+
+		HttpEntity<?> requestLogout = new HttpEntity<>(logoutUserDto, logoutRequestHeader);
+		ResponseEntity<String> logoutResponse = restTemplate.exchange(logoutUri, HttpMethod.DELETE, requestLogout,
+				String.class);
+
+		assertThat(logoutResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		assertThat(userDao.findByUsername(STANDARD_USER.getUsername()).getLastLoggedOut()).isNotNull();
+		assertThat(userDao.findByUsername(STANDARD_USER.getUsername()).getLastLoggedOut().after(beforeLogout)).isTrue();
+	}
+
+	private ResponseEntity<User> getResponseOfRegisterUserQuery() {
+		ResponseEntity<User> response = null;
+		try {
+			User u = userDao.findByUsername(STANDARD_USER.getUsername());
+			if (u == null) {
+				response = registerUser(STANDARD_USER);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
