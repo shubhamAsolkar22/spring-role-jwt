@@ -85,7 +85,7 @@ public class TokenProvider implements Serializable {
 
 	public Boolean validateToken(String token, UserDetails userDetails) {
 		final String username = getUsernameFromToken(token);
-		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token) && !isLoggedOutToken(token));
+		return username.equals(userDetails.getUsername()) && !isTokenExpired(token) /*&& !isLoggedOutToken(token)*/;
 	}
 
 	private boolean isLoggedOutToken(String token) {
