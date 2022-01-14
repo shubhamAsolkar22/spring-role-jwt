@@ -51,4 +51,9 @@ public class Validator {
 			throw new IndianMobileNumberInvalidException();
 		}
 	}
+	
+	public static void checkNull(Object s) {
+		if(s==null)
+			throw new DisallowedNullValueException();
+	}
 }

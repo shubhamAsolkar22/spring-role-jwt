@@ -16,6 +16,7 @@ public class UserDtoValidator extends AbstractValidable<UserDto>{
 	
 	@Override
 	protected void customChecks(UserDto userDto) {
+		Validator.checkNull(userDto);
 		Validator.checkValidEmail(userDto.getEmail());
 		Validator.checkValidPassword(userDto.getPassword());
 		Validator.checkValidPhoneNumber(userDto.getPhone());
